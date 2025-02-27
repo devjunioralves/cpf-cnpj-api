@@ -1,4 +1,4 @@
-module cpf-cnpj-validator
+module cpf-cnpj-api
 
 go 1.21.1
 
