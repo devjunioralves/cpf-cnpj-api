@@ -1,26 +1,30 @@
 package main
 
 import (
-	"fmt"
 	"log"
-	"net/http"
 
 	"github.com/joho/godotenv"
 
-	"cpf-cnpj-validator/internal/app"
-	"cpf-cnpj-validator/internal/infrastructure"
+	"cpf-cnpj-api/internal/app"
+	"cpf-cnpj-api/internal/domain/services"
+	"cpf-cnpj-api/internal/infrastructure"
+	"cpf-cnpj-api/internal/infrastructure/repositories"
+	"cpf-cnpj-api/internal/presentation"
 )
 
 func main() {
 	if err := godotenv.Load(); err != nil {
-		log.Println("⚠️ Arquivo .env não encontrado, usando variáveis do sistema.")
+		log.Println("⚠️ .env file not found, using system vars.")
 	}
 
-	infrastructure.NewDatabase()
+	database := infrastructure.NewDatabase()
+	db := database.GetDB()
 
-	router := app.SetupRoutes()
+	repo := repositories.NewCpfCnpjRepositoryGorm(db)
+	cpfService := services.NewCpfCnpjService(repo)
+	cpfHandler := presentation.NewCPFHandler(cpfService)
 
-	port := "8080"
-	fmt.Printf("Servidor rodando em http://localhost:%s\n", port)
-	log.Fatal(http.ListenAndServe(":"+port, router))
+	router := app.SetupRoutes(cpfHandler)
+	server := app.NewHttpServer(router)
+	server.Start("8080")
 }
