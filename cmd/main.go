@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 
 	"github.com/joho/godotenv"
 
@@ -20,11 +21,17 @@ func main() {
 	database := infrastructure.NewDatabase()
 	db := database.GetDB()
 
-	repo := repositories.NewCpfCnpjRepositoryGorm(db)
-	cpfService := services.NewCpfCnpjService(repo)
+	userRepo := repositories.NewUserRepositoryGorm(db)
+	cpfRepo := repositories.NewCpfCnpjRepositoryGorm(db)
+
+	authService := services.NewAuthService(userRepo, os.Getenv("JWT_SECRET"))
+	cpfService := services.NewCpfCnpjService(cpfRepo)
+
+	authHandler := presentation.NewAuthHandler(authService)
 	cpfHandler := presentation.NewCPFHandler(cpfService)
 
-	router := app.SetupRoutes(cpfHandler)
+	router := app.SetupRoutes(authHandler, cpfHandler, authService)
+
 	server := app.NewHttpServer(router)
 	server.Start("8080")
 }

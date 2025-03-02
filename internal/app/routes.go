@@ -1,18 +1,26 @@
 package app
 
 import (
+	"cpf-cnpj-api/internal/domain/services"
 	"cpf-cnpj-api/internal/presentation"
+	"cpf-cnpj-api/internal/presentation/middlewares"
 
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRoutes(handler *presentation.CPFHandler) *gin.Engine {
+func SetupRoutes(authHandler *presentation.AuthHandler, cpfHandler *presentation.CPFHandler, authService *services.AuthService) *gin.Engine {
 	router := gin.Default()
 
-	api := router.Group("/cpf-cnpj")
+	api := router.Group("/api")
+
+	api.POST("/register", authHandler.Register)
+	api.POST("/login", authHandler.Login)
+
+	apiAuthenticated := api.Group("/cpf-cnpj")
+	apiAuthenticated.Use(middlewares.AuthMiddleware(authService))
 	{
-		api.POST("/", handler.CreateCPF)
-		api.GET("/", handler.GetAllCPF)
+		apiAuthenticated.POST("/", cpfHandler.CreateCPF)
+		apiAuthenticated.GET("/", cpfHandler.GetAllCPF)
 	}
 
 	return router
