@@ -1,16 +1,15 @@
 package main
 
 import (
-	"log"
-	"os"
-
-	"github.com/joho/godotenv"
-
 	"cpf-cnpj-api/internal/app"
 	"cpf-cnpj-api/internal/domain/services"
 	"cpf-cnpj-api/internal/infrastructure"
 	"cpf-cnpj-api/internal/infrastructure/repositories"
 	"cpf-cnpj-api/internal/presentation"
+	"log"
+	"os"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
@@ -28,10 +27,20 @@ func main() {
 	cpfService := services.NewCpfCnpjService(cpfRepo)
 
 	authHandler := presentation.NewAuthHandler(authService)
-	cpfHandler := presentation.NewCPFHandler(cpfService)
+
+	conn, channel, err := infrastructure.NewRabbitMQ()
+	if err != nil {
+		log.Fatalf("❌ Failed to connect to RabbitMQ: %v", err)
+	}
+	rabbitMQ := &infrastructure.RabbitMQ{
+		Connection: conn,
+		Channel:    channel,
+	}
+	cpfHandler := presentation.NewCPFHandler(cpfService, rabbitMQ)
 
 	router := app.SetupRoutes(authHandler, cpfHandler, authService)
 
 	server := app.NewHttpServer(router)
 	server.Start("8080")
+
 }

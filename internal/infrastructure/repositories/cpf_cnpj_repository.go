@@ -37,3 +37,9 @@ func (r *CpfCnpjRepositoryGorm) Update(cpfCnpj *models.CpfCnpj) error {
 func (r *CpfCnpjRepositoryGorm) Delete(id uint) error {
 	return r.DB.Delete(&models.CpfCnpj{}, id).Error
 }
+
+func (r *CpfCnpjRepositoryGorm) BlockCpfCnpjById(id uint) error {
+	return r.DB.Model(&models.CpfCnpj{}).
+		Where("id = ?", id).
+		Update("blocked", true).Error
+}

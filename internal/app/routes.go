@@ -21,6 +21,7 @@ func SetupRoutes(authHandler *presentation.AuthHandler, cpfHandler *presentation
 	{
 		apiAuthenticated.POST("/", cpfHandler.CreateCPF)
 		apiAuthenticated.GET("/", cpfHandler.GetAllCPF)
+		apiAuthenticated.POST("/block", cpfHandler.BlockCPF)
 	}
 
 	return router

@@ -8,10 +8,17 @@ services:
       - "8080:8080"
     env_file:
       - .env
+    environment:
+      RABBITMQ_USER: user
+      RABBITMQ_PASS: password
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
     depends_on:
       - cpf-cnpj-db
+      - rabbitmq
     networks:
       - app-network
+
   cpf-cnpj-db:
     image: postgres:15
     container_name: cpf-cnpj-db
@@ -23,6 +30,18 @@ services:
       POSTGRES_DB: cpf_cnpj_db
     volumes:
       - db_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  rabbitmq:
+    image: "rabbitmq:management"
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: user
+      RABBITMQ_DEFAULT_PASS: password
     networks:
       - app-network
 
