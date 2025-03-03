@@ -25,11 +25,20 @@ var (
 		},
 		[]string{"method", "route", "status_code"},
 	)
+
+	httpInProgress = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "http_in_progress",
+			Help: "Number of HTTP requests currently in progress",
+		},
+		[]string{"method", "route"},
+	)
 )
 
 func init() {
 	prometheus.MustRegister(httpDuration)
 	prometheus.MustRegister(httpRequests)
+	prometheus.MustRegister(httpInProgress)
 }
 
 func MetricMiddleware() gin.HandlerFunc {
