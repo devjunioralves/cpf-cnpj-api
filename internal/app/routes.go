@@ -12,6 +12,8 @@ func SetupRoutes(authHandler *presentation.AuthHandler, cpfHandler *presentation
 	router := gin.Default()
 	router.Use(middlewares.CorsMiddleware())
 
+	router.GET("/metrics", middlewares.MetricsHandler())
+
 	api := router.Group("/api")
 	api.POST("/register", authHandler.Register)
 	api.POST("/login", authHandler.Login)
