@@ -66,7 +66,7 @@ func (h *CPFHandler) BlockCPF(c *gin.Context) {
 	message := strconv.FormatUint(uint64(input.ID), 10)
 	err := h.RabbitMQ.PublishMessage("block_cpf_queue", message)
 	if err != nil {
-		log.Printf("❌ Failed to publish message: %v", err)
+		log.Printf("Failed to publish message: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to enqueue block request"})
 		return
 	}

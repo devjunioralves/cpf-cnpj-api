@@ -32,7 +32,12 @@ func main() {
 	if err != nil {
 		log.Fatalf("❌ Failed to connect to RabbitMQ: %v", err)
 	}
-	defer rabbitMQ.Close()
+	defer func() {
+		if err := rabbitMQ.Channel.Close(); err != nil {
+			log.Printf("⚠️ Error closing RabbitMQ connection: %v", err)
+		}
+	}()
+
 	cpfHandler := presentation.NewCPFHandler(cpfService, rabbitMQ)
 
 	router := app.SetupRoutes(authHandler, cpfHandler, authService)

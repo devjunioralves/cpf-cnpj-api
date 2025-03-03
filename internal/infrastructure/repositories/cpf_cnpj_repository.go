@@ -24,20 +24,6 @@ func (r *CpfCnpjRepositoryGorm) FindAll() ([]models.CpfCnpj, error) {
 	return cpfs, err
 }
 
-func (r *CpfCnpjRepositoryGorm) FindById(id uint) (*models.CpfCnpj, error) {
-	var cpf models.CpfCnpj
-	err := r.DB.First(&cpf, id).Error
-	return &cpf, err
-}
-
-func (r *CpfCnpjRepositoryGorm) Update(cpfCnpj *models.CpfCnpj) error {
-	return r.DB.Save(cpfCnpj).Error
-}
-
-func (r *CpfCnpjRepositoryGorm) Delete(id uint) error {
-	return r.DB.Delete(&models.CpfCnpj{}, id).Error
-}
-
 func (r *CpfCnpjRepositoryGorm) BlockCpfCnpjById(id uint) error {
 	return r.DB.Model(&models.CpfCnpj{}).
 		Where("id = ?", id).

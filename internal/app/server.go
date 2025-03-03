@@ -20,8 +20,12 @@ func NewHttpServer(router *gin.Engine) Server {
 }
 
 func (s *HttpServer) Start(port string) {
-	fmt.Printf("🚀 Server running at http://localhost:%s\n", port)
-	if err := s.engine.Run(":" + port); err != nil {
-		log.Fatalf("Error on server start: %v", err)
+	address := fmt.Sprintf(":%s", port)
+	fmt.Printf("🚀 Server running at http://localhost%s\n", address)
+
+	if err := s.engine.Run(address); err != nil {
+		log.Fatalf("❌ Error starting server: %v", err)
+	} else {
+		log.Println("✅ Server started successfully!")
 	}
 }

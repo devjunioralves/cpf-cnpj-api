@@ -5,6 +5,7 @@ import (
 	"cpf-cnpj-api/internal/infrastructure/repositories"
 	"log"
 	"strconv"
+	"time"
 )
 
 func main() {
@@ -12,7 +13,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("❌ failed to connect to RabbitMQ: %v", err)
 	}
-	defer rabbitMQ.Close()
+	defer func() {
+		if err := rabbitMQ.Channel.Close(); err != nil {
+			log.Printf("⚠️ failed to close RabbitMQ connection: %v", err)
+		}
+	}()
 
 	_, err = rabbitMQ.Channel.QueueDeclare(
 		"block_cpf_queue",
@@ -22,7 +27,6 @@ func main() {
 		false,
 		nil,
 	)
-
 	if err != nil {
 		log.Fatalf("❌ failed to declare queue: %v", err)
 	}
@@ -40,7 +44,6 @@ func main() {
 		false,
 		nil,
 	)
-
 	if err != nil {
 		log.Fatalf("❌ failed to consume messages: %v", err)
 	}
@@ -57,7 +60,9 @@ func main() {
 		if err != nil {
 			log.Printf("❌ Error blocking CPF/CNPJ with ID %s: %v", cpfId, err)
 		} else {
-			log.Printf("❌ Blocked CPF/CNPJ with ID %s", cpfId)
+			log.Printf("✅ Successfully blocked CPF/CNPJ with ID %s", cpfId)
 		}
+
+		time.Sleep(500 * time.Millisecond)
 	}
 }
