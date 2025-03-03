@@ -10,9 +10,9 @@ import (
 
 func SetupRoutes(authHandler *presentation.AuthHandler, cpfHandler *presentation.CPFHandler, authService *services.AuthService) *gin.Engine {
 	router := gin.Default()
+	router.Use(middlewares.CorsMiddleware())
 
 	api := router.Group("/api")
-
 	api.POST("/register", authHandler.Register)
 	api.POST("/login", authHandler.Login)
 
