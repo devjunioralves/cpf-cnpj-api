@@ -8,14 +8,13 @@ import (
 )
 
 func main() {
-	rabbitMQ, channel, err := infrastructure.NewRabbitMQ()
+	rabbitMQ, err := infrastructure.NewRabbitMQ()
 	if err != nil {
 		log.Fatalf("❌ failed to connect to RabbitMQ: %v", err)
 	}
 	defer rabbitMQ.Close()
-	defer channel.Close()
 
-	_, err = channel.QueueDeclare(
+	_, err = rabbitMQ.Channel.QueueDeclare(
 		"block_cpf_queue",
 		true,
 		false,
@@ -32,7 +31,7 @@ func main() {
 	db := database.GetDB()
 	cpfRepo := repositories.NewCpfCnpjRepositoryGorm(db)
 
-	msgs, err := channel.Consume(
+	msgs, err := rabbitMQ.Channel.Consume(
 		"block_cpf_queue",
 		"",
 		true,

@@ -28,14 +28,11 @@ func main() {
 
 	authHandler := presentation.NewAuthHandler(authService)
 
-	conn, channel, err := infrastructure.NewRabbitMQ()
+	rabbitMQ, err := infrastructure.NewRabbitMQ()
 	if err != nil {
 		log.Fatalf("❌ Failed to connect to RabbitMQ: %v", err)
 	}
-	rabbitMQ := &infrastructure.RabbitMQ{
-		Connection: conn,
-		Channel:    channel,
-	}
+	defer rabbitMQ.Close()
 	cpfHandler := presentation.NewCPFHandler(cpfService, rabbitMQ)
 
 	router := app.SetupRoutes(authHandler, cpfHandler, authService)

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sync"
 
 	"github.com/streadway/amqp"
 )
@@ -13,27 +14,43 @@ type RabbitMQ struct {
 	Channel    *amqp.Channel
 }
 
-func NewRabbitMQ() (*amqp.Connection, *amqp.Channel, error) {
-	rabbitUser := os.Getenv("RABBITMQ_USER")
-	rabbitPass := os.Getenv("RABBITMQ_PASS")
-	rabbitHost := os.Getenv("RABBITMQ_HOST")
-	rabbitPort := os.Getenv("RABBITMQ_PORT")
+var (
+	rabbitInstance *RabbitMQ
+	rabbitOnce     sync.Once
+)
 
-	amqpURL := fmt.Sprintf("amqp://%s:%s@%s:%s/", rabbitUser, rabbitPass, rabbitHost, rabbitPort)
+func NewRabbitMQ() (*RabbitMQ, error) {
+	rabbitOnce.Do(func() {
+		rabbitUser := os.Getenv("RABBITMQ_USER")
+		rabbitPass := os.Getenv("RABBITMQ_PASS")
+		rabbitHost := os.Getenv("RABBITMQ_HOST")
+		rabbitPort := os.Getenv("RABBITMQ_PORT")
 
-	conn, err := amqp.Dial(amqpURL)
-	if err != nil {
-		log.Printf("❌ Failed to connect to RabbitMQ: %v", err)
-		return nil, nil, err
+		amqpURL := fmt.Sprintf("amqp://%s:%s@%s:%s/", rabbitUser, rabbitPass, rabbitHost, rabbitPort)
+
+		conn, err := amqp.Dial(amqpURL)
+		if err != nil {
+			log.Printf("❌ Failed to connect to RabbitMQ: %v", err)
+			return
+		}
+
+		channel, err := conn.Channel()
+		if err != nil {
+			log.Printf("❌ Failed to open a channel: %v", err)
+			return
+		}
+
+		rabbitInstance = &RabbitMQ{
+			Connection: conn,
+			Channel:    channel,
+		}
+	})
+
+	if rabbitInstance == nil {
+		return nil, fmt.Errorf("❌ failed to initialize RabbitMQ")
 	}
 
-	channel, err := conn.Channel()
-	if err != nil {
-		log.Printf("❌ Failed to open a channel: %v", err)
-		return nil, nil, err
-	}
-
-	return conn, channel, nil
+	return rabbitInstance, nil
 }
 
 func (r *RabbitMQ) DeclareQueue(queueName string) error {
@@ -65,6 +82,10 @@ func (r *RabbitMQ) PublishMessage(queueName, message string) error {
 }
 
 func (r *RabbitMQ) Close() {
-	r.Channel.Close()
-	r.Connection.Close()
+	if r.Channel != nil {
+		r.Channel.Close()
+	}
+	if r.Connection != nil {
+		r.Connection.Close()
+	}
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sync"
 
 	"cpf-cnpj-api/internal/domain/models"
 
@@ -15,27 +16,38 @@ type Database struct {
 	DB *gorm.DB
 }
 
+var (
+	dbInstance *gorm.DB
+	once       sync.Once
+)
+
 func NewDatabase() *Database {
-	dsn := fmt.Sprintf(
-		"host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
-		getEnv("DB_HOST", ""),
-		getEnv("DB_USER", ""),
-		getEnv("DB_PASSWORD", ""),
-		getEnv("DB_NAME", ""),
-		getEnv("DB_PORT", ""),
-	)
+	once.Do(func() {
+		dsn := fmt.Sprintf(
+			"host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
+			getEnv("DB_HOST", ""),
+			getEnv("DB_USER", ""),
+			getEnv("DB_PASSWORD", ""),
+			getEnv("DB_NAME", ""),
+			getEnv("DB_PORT", ""),
+		)
 
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-	if err != nil {
-		log.Fatalf("Error on connect database: %v", err)
-	}
+		var err error
+		dbInstance, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+		if err != nil {
+			log.Fatalf("Error on connect database: %v", err)
+		}
 
-	fmt.Println("📦 Successfully on connect database!")
-	database := &Database{DB: db}
+		fmt.Println("📦 Successfully connected to database!")
 
-	database.Migrate()
+		err = dbInstance.AutoMigrate(&models.CpfCnpj{})
+		if err != nil {
+			log.Fatalf("Error on running migrations: %v", err)
+		}
+		fmt.Println("✅ Successfully on run migrations!")
+	})
 
-	return database
+	return &Database{DB: dbInstance}
 }
 
 func getEnv(key, defaultValue string) string {
@@ -47,7 +59,7 @@ func getEnv(key, defaultValue string) string {
 }
 
 func (d *Database) GetDB() *gorm.DB {
-	return d.DB
+	return dbInstance
 }
 
 func (d *Database) Migrate() {

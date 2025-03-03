@@ -55,6 +55,27 @@ services:
     networks:
       - app-network
 
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    depends_on:
+      - cpf-cnpj-api
+      - rabbitmq
+    env_file:
+      - .env
+    environment:
+      RABBITMQ_USER: user
+      RABBITMQ_PASS: password
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    networks:
+      - app-network
+
 networks:
   app-network:
     driver: bridge
