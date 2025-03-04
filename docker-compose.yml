@@ -60,6 +60,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.worker
+    restart: always
     depends_on:
       - cpf-cnpj-api
       - rabbitmq
@@ -74,6 +75,16 @@ services:
       replicas: 1
       restart_policy:
         condition: on-failure
+    networks:
+      - app-network
+
+  cpf-cnpj-client:
+    build:
+      context: ../cpf-cnpj-client
+    container_name: cpf-cnpj-client
+    restart: always
+    ports:
+      - "80:80"
     networks:
       - app-network
 

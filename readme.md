@@ -35,6 +35,7 @@ Before running the project, ensure you have the following installed:
 
 ```bash
 git clone https://github.com/devjunioralves/cpf-cnpj-api
+git clone https://github.com/devjunioralves/cpf-cnpj-client
 cd cpf-cnpj-api
 ```
 
@@ -46,6 +47,13 @@ cp .env.example .env
 
 3️⃣ **Running the Project**
 
+- Ensure that cpf-cnpj-api and cpf-cnpj-client are located at the same level in your file structure. For example:
+
+```bash
+~/Projects/cpf-cnpj-api/
+~/Projects/cpf-cnpj-client/
+```
+
 ```bash
 docker compose up -d
 ```
@@ -55,6 +63,9 @@ docker compose up -d
 - Unit Tests: Implement more unit tests to cover edge cases and ensure robustness of individual components.
 - Integration Tests: Increase the coverage of integration tests to ensure seamless communication between services and databases.
 - Observability & Log Storage: Improve observability by setting up a centralized logging system (e.g., ELK stack) to store and analyze application logs.
+- Crypto Key Management: The current storage method for the encryption key (CRYPTO_KEY) could be improved for better security and permission control. Consider using secure methods like:
+  - AWS Secrets Manager: Securely store and control access to the key.
+  - HashiCorp Vault: Provides detailed access control and auditing.
 
 ```
 .
