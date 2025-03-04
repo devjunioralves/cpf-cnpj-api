@@ -25,6 +25,11 @@ func (s *AuthService) Register(username string, password string, email string) (
 		return nil, fmt.Errorf("%w: user already exists", ErrUserAlreadyExists)
 	}
 
+	existingUserByEmail, _ := s.userRepository.FindByEmail(email)
+	if existingUserByEmail != nil {
+		return nil, fmt.Errorf("%w: email already exists", ErrUserAlreadyExists)
+	}
+
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, fmt.Errorf("error encrypting password: %w", err)

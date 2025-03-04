@@ -15,8 +15,11 @@ func ValidateCpfCnpj(number string, documentType string) error {
 
 	if documentType == "CPF" && !ValidateCPF(number) {
 		return ErrInvalidCPF
-	} else if documentType == "CNPJ" && !ValidateCNPJ(number) {
-		return ErrInvalidCNPJ
+	} else if documentType == "CNPJ" {
+		valid, err := ValidateCNPJ(number)
+		if err != nil || !valid {
+			return ErrInvalidCNPJ
+		}
 	}
 	return nil
 }

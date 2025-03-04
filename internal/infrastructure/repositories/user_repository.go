@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"cpf-cnpj-api/internal/domain/models"
+	"errors"
 
 	"gorm.io/gorm"
 )
@@ -21,6 +22,17 @@ func (r *UserRepositoryGorm) Save(user *models.User) error {
 func (r *UserRepositoryGorm) FindByUsername(username string) (*models.User, error) {
 	var user models.User
 	if err := r.db.Where("username = ?", username).First(&user).Error; err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+func (r *UserRepositoryGorm) FindByEmail(email string) (*models.User, error) {
+	var user models.User
+	if err := r.db.Where("email = ?", email).First(&user).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
 		return nil, err
 	}
 	return &user, nil
